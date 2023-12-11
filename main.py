@@ -30,17 +30,27 @@ class Hero(pygame.sprite.Sprite) :
     def __init__(self) :
         pygame.sprite.Sprite.__init__(self)
         self.images = heros
-        self.image = heros[0][0]
+        self.cote = 0
+        self.step = 0
+        self.image = heros[self.cote][self.step]
         self.rect = self.image.get_rect()
         self.rect.center = (length// 2,length//2)
     
     def draw(self) :
         screen.blit(self.image,self.rect)
+    
+    def marcher(self) :
+        self.step = (self.step + 1) % 4
+        self.image = heros[self.cote][self.step]
+        
 
 hero = Hero()
 game_on = True
+c = 0
 
 while game_on :
+    
+    c += 1
     
     clock.tick(FPS)
     bg_change_x = 0
@@ -55,11 +65,23 @@ while game_on :
         bg_change_y += 5
     if keys[pygame.K_q] :
         bg_change_x += 5
+        if hero.cote == 0 :
+            hero.cote = 1
     if keys[pygame.K_s] :
         bg_change_y -= 5
     if keys[pygame.K_d] :
         bg_change_x -= 5
+        if hero.cote == 1 :
+            hero.cote = 0
 
+    if (bg_change_x != 0 or bg_change_y != 0):
+        if c >= 10 :
+            hero.marcher()
+            c = 0
+    elif hero.step % 2 == 1 :
+        hero.step = 0
+        hero.image = heros[hero.cote][hero.step]
+        
     for i in range(len(bgs_coords)) :
         if bgs_coords[i][0] > length :
             bgs_coords[i][0] -= length*2
@@ -74,6 +96,7 @@ while game_on :
         screen.blit(bg,bgs_coords[i])
     
     hero.draw()
+
 
     pygame.display.flip()
 
