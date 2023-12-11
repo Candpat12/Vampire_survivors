@@ -11,6 +11,7 @@ pygame.display.set_caption("Mon jeu")
 game_folder = path.dirname(__file__)
 sprite_folder = path.join(game_folder,'sprites')
 hero_folder = path.join(sprite_folder,'hero')
+enemy_folder = path.join(sprite_folder,'enemy')
 
 bg = pygame.image.load(path.join(sprite_folder, "bg.png")).convert()
 bgs_coords = [[-length,-length],[-length,0],[-length,length],[0,-length],[0,0],[0,length],[length,-length],[length,0],[length,length]]
@@ -19,9 +20,18 @@ for file in [path.join(hero_folder,'right'),path.join(hero_folder,'left')] :
     l = []
     for i in range(1,5) :
         a = pygame.image.load(path.join(file,"hero_"+str(i)+'.png'))
-        a = pygame.transform.scale(a,(36*2,36*2))
+        a = pygame.transform.scale2x(a)
         l.append(a)
     heros.append(l)
+    
+enemies = []
+for file in [path.join(enemy_folder,'right'),path.join(enemy_folder,'left')] :
+    l = []
+    for i in range(1,4) :
+        a = pygame.image.load(path.join(file,"enemy_"+str(i)+'.png'))
+        a = pygame.transform.scale2x(a)
+        l.append(a)
+    enemies.append(l)
 
 clock = pygame.time.Clock()
 
@@ -29,7 +39,6 @@ class Hero(pygame.sprite.Sprite) :
     
     def __init__(self) :
         pygame.sprite.Sprite.__init__(self)
-        self.images = heros
         self.cote = 0
         self.step = 0
         self.image = heros[self.cote][self.step]
@@ -43,14 +52,24 @@ class Hero(pygame.sprite.Sprite) :
         self.step = (self.step + 1) % 4
         self.image = heros[self.cote][self.step]
         
+class Enemy(pygame.sprite.Sprite) :
+    
+    def __init__(self) :
+        pygame.sprite.Sprite.__init__(self)
+        self.cote = 0
+        self.step = 0
+        self.image = enemies[self.cote][self.step]
+        self.rect = self.image.get_rect()
+        self.rect.center = (length-20,length//2)
 
 hero = Hero()
+enemy = Enemy()
 game_on = True
-c = 0
+cpt_mouv = 0
 
 while game_on :
     
-    c += 1
+    cpt_mouv += 1
     
     clock.tick(FPS)
     bg_change_x = 0
@@ -75,9 +94,9 @@ while game_on :
             hero.cote = 0
 
     if (bg_change_x != 0 or bg_change_y != 0):
-        if c >= 10 :
+        if cpt_mouv >= 10 :
             hero.marcher()
-            c = 0
+            cpt_mouv = 0
     elif hero.step % 2 == 1 :
         hero.step = 0
         hero.image = heros[hero.cote][hero.step]
@@ -96,6 +115,7 @@ while game_on :
         screen.blit(bg,bgs_coords[i])
     
     hero.draw()
+    screen.blit(enemy.image,enemy.rect)
 
 
     pygame.display.flip()
