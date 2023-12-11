@@ -18,7 +18,9 @@ heros = []
 for file in [path.join(hero_folder,'right'),path.join(hero_folder,'left')] :
     l = []
     for i in range(1,5) :
-        l.append(pygame.image.load(path.join(file,"hero_"+str(i)+'.png')))
+        a = pygame.image.load(path.join(file,"hero_"+str(i)+'.png'))
+        a = pygame.transform.scale(a,(36*2,36*2))
+        l.append(a)
     heros.append(l)
 
 clock = pygame.time.Clock()
@@ -29,8 +31,11 @@ class Hero(pygame.sprite.Sprite) :
         pygame.sprite.Sprite.__init__(self)
         self.images = heros
         self.image = heros[0][0]
-        self.rect = self.image.get_rect
+        self.rect = self.image.get_rect()
         self.rect.center = (length// 2,length//2)
+    
+    def draw(self) :
+        screen.blit(self.image,self.rect)
 
 hero = Hero()
 game_on = True
@@ -68,8 +73,8 @@ while game_on :
         bgs_coords[i][1] += bg_change_y
         screen.blit(bg,bgs_coords[i])
     
-    hero.draw(screen)
+    hero.draw()
 
-    pygame.display.update()
+    pygame.display.flip()
 
 pygame.quit()
