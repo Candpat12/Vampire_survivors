@@ -41,14 +41,16 @@ clock = pygame.time.Clock()         # on définit l'horloge interne
 game_on = True
 cpt_mouv = 0                # cpt_mouv compte le temps qui s'écoule entre 2 mouvements, pour que le sprite ne change pas trop vite
 cpt_spawn = 0
-cpt_immunity = 0
+cpt_immunity = FPS*2
 all_enemy = pygame.sprite.Group()
 nb_enemy = 0                # nb_enemy compte le nombre d'ennemis
-max_enemy = 10              # max_enemy correspond au nombre maximum d'ennemis
+max_enemy = 100              # max_enemy correspond au nombre maximum d'ennemis
 cpt_enemy = 0               # cpt_enemy compte le temps écoulé entre 2 apparitions d'ennemis
-delay_enemy = FPS           # delay_enemy définis le temps qu'il faut attendre entre 2 apparitions d'ennemis
+delay_enemy = FPS*0.25           # delay_enemy définis le temps qu'il faut attendre entre 2 apparitions d'ennemis
 hero_speed = 5              # hero_speed et enemy_speed correspondent à la vitesse du héro et des enemy
 enemy_speed = 3
+max_health = 100
+hp = 100
 
 class Hero(pygame.sprite.Sprite) :
     
@@ -59,10 +61,18 @@ class Hero(pygame.sprite.Sprite) :
         self.image = heros[self.cote][self.step]            # hero.cote correspond à la liste de heros que l'on va utiliser (gauche ou droite)
         self.rect = self.image.get_rect()                   # hero.step correspond à l'étape du cycle de marche du héro dans lequel on se trouve
         self.rect.center = (length// 2,length//2)
+        self.immune = False
+        
         
     
     def draw(self) :
-        screen.blit(self.image,self.rect)                   # draw sert à dessiner sur l'écran le sprite
+        global cpt_immunity
+        if cpt_immunity >= FPS*2 :
+            self.immune = False
+        elif cpt_immunity % 10 == 0 :
+            self.immune = not self.immune
+        if not self.immune :    
+            screen.blit(self.image,self.rect)                   # draw sert à dessiner sur l'écran le sprite         
     
     def marcher(self) :
         self.step = (self.step + 1) % 4
@@ -77,7 +87,7 @@ class Enemy(pygame.sprite.Sprite) :
         self.image = enemies[self.cote][self.step]
         self.rect = self.image.get_rect()
         a = randint(-length,length)
-        b = choice([i for i in range(-length,1)]+[i for i in range(length,length*2+1)])
+        b = choice([i for i in range(-length//2,1)]+[i for i in range(length,int(length*1.5))])
         self.knocked = False
         if choice([True,False]) :
             self.rect.center = (a,b)
@@ -85,7 +95,7 @@ class Enemy(pygame.sprite.Sprite) :
             self.rect.center = (b,a)
     
     def update(self) :
-        global cpt_immunity
+        global cpt_immunity,hp
         if not self.knocked :
             liste_mouv = [0,0]
             if self.rect.x not in [(length//2)-40,(length//2)-15] and self.rect.y not in [(length//2)-40,(length//2)-15] :
@@ -107,12 +117,13 @@ class Enemy(pygame.sprite.Sprite) :
             if pygame.sprite.collide_rect(self,hero) and cpt_immunity >= FPS*2 :
                 cpt_immunity = 0
                 self.knocked = True
+                hp -= 5
             if liste_mouv != [0,0] :
                 self.liste_mouv = liste_mouv
         else :
-            self.rect.x -= self.liste_mouv[0]*1.5
-            self.rect.y -= self.liste_mouv[1]*1.5
-            if cpt_immunity > FPS :
+            self.rect.x -= self.liste_mouv[0]*2
+            self.rect.y -= self.liste_mouv[1]*2
+            if cpt_immunity > FPS*0.5 :
                 self.knocked = False
             
             
@@ -126,6 +137,9 @@ enemy = Enemy()
 
 while game_on :
     
+    if hp <= 0 :
+        game_on = False
+        
     cpt_mouv += 1           # on incrémente chaque compteur
     cpt_enemy += 1
     if cpt_immunity < FPS*2 :
@@ -210,6 +224,8 @@ while game_on :
     
     hero.draw()                                 # on affiche le héro et les ennemis à l'écran
     all_enemy.draw(screen)
+    pygame.draw.rect(screen,(255,0,0),(476,558,72,10))
+    pygame.draw.rect(screen,(0,255,0),(476,558,72*(hp/max_health),10))
     pygame.display.flip()                       # on retourne l'écran pour afficher les changements
 
 pygame.quit()
